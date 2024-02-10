@@ -35,7 +35,14 @@ initial_prompt_template = PromptTemplate(
     """
 )
 
-# Prompt template for summarizing medical conditions and severity pairs
+firstaid_prompt_template = PromptTemplate(
+    input_variables=["prediction","userssymptoms"],
+    template="""
+    {prediction} is the most probable medical condition that the user might be facing. The user is facing the following symptoms: {userssymptoms}.
+    Please provide the first aid for the condition {prediction}.
+    """ 
+)
+
 summary_prompt_template = PromptTemplate(
     input_variables=["response"],
     template="""
@@ -64,11 +71,49 @@ base_chain = LLMChain(llm=llm, prompt=initial_prompt_template, output_key="respo
 
 final_chain = LLMChain(llm=ner, prompt=summary_prompt_template, output_key="result")
 
+firstaid_chain = LLMChain(llm=llm, prompt=firstaid_prompt_template, output_key="firstaid")
+
+# def get_response(question):
+    # res = base_chain.invoke({"input": question})
+    # final_res = final_chain.invoke({"response": res["response"]})
+    # print(res["response"])
+    # firstaid_res = firstaid_chain.invoke({"prediction": final_res["result"][0], "userssymptoms": question})
+    # return (final_res["result"], res["response"], firstaid_res["firstaid"])
+llm = HuggingFaceHub(
+    repo_id="openai-community/gpt2",
+    task="text-generation",
+    model_kwargs={"max_new_tokens": 512, "temperature": 0.1},
+    huggingfacehub_api_token=get_key(key_to_get="HUGGINGFACEHUB_API_KEY", dotenv_path=".env")
+)
+chat_llm = ChatHuggingFace(llm=llm)  # Adjust model as needed
+
 def get_response(question):
-    res = base_chain.invoke({"input": question})
-    final_res = final_chain.invoke({"response": res["response"]})
-    print(res["response"])
-    return final_res["result"]
+    # Initial prompt as a system message
+    base_res = chat_llm.run(
+        messages=[
+            {"type": "system", "content": initial_prompt_template.template.format(input=question)}
+        ]
+    )
+
+    # NER model as a system message
+    final_res = chat_llm.run(
+        messages=[{"type": "system", "content": base_res["messages"][0]["content"]}]
+    )
+
+    # First aid prompt as a system message
+    firstaid_res = chat_llm.run(
+        messages=[
+            {
+                "type": "system",
+                "content": firstaid_prompt_template.template.format(
+                    prediction=final_res["result"][0], userssymptoms=question
+                ),
+            }
+        ]
+    )
+
+    return final_res["result"], base_res["messages"][0]["content"], firstaid_res["result"]
+
 
 st.set_page_config(page_title="Q&A demo", page_icon="🌍")
 st.header("Langchain Application")
@@ -82,5 +127,10 @@ if submit_button:
     if input_text == "":
         st.write("Please enter a question")
     else:
-        response = get_response(input_text)
-        st.write(response)
+        res = get_response(input_text)
+        st.subheader("First aid for the condition")
+        st.write(res[1].strip())
+        st.subheader("Medical conditions and their severity")
+        st.write(res[0].strip())
+        st.subheader("Summary of the medical conditions and their severity")
+        st.write(res[2].strip())
