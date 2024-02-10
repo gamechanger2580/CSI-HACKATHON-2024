@@ -19,28 +19,20 @@ def extract_acoustic_features(audio_data, sr):
     zcr = librosa.feature.zero_crossing_rate(y=y)
     mean_zcr = np.mean(zcr)
 
-    # Calculate duration of speech
-    duration = librosa.get_duration(y=y, sr=sr)
+    # Extract speech rate
+    speech_rate = 1.0 / (librosa.get_duration(y=y, sr=sr) / len(y))
 
-    # Calculate average pause duration (silence duration)
-    pauses = librosa.effects.split(y)
-    pause_durations = np.diff(pauses) / sr
-    if len(pause_durations) > 0:
-        mean_pause_duration = np.mean(pause_durations)
-    else:
-        mean_pause_duration = 0
-
-    return mean_pitch, mean_intensity, mean_zcr, duration, mean_pause_duration
+    return mean_pitch, mean_intensity, mean_zcr, speech_rate
 
 # Function to classify anxiety level
 def classify_anxiety_level(anxiety_score):
-    if anxiety_score > 100:
+    if anxiety_score > 0.7:
         return 'Very High'
-    elif anxiety_score > 75:
+    elif anxiety_score > 0.5:
         return 'High'
-    elif anxiety_score > 50:
+    elif anxiety_score > 0.3:
         return 'Medium'
-    elif anxiety_score > 25:
+    elif anxiety_score > 0.1:
         return 'Low'
     else:
         return 'Calm'
@@ -48,11 +40,16 @@ def classify_anxiety_level(anxiety_score):
 # Function to estimate anxiety level based on acoustic features
 def estimate_anxiety_level(audio_data, sr):
     # Extract acoustic features
-    mean_pitch, mean_intensity, mean_zcr, duration, mean_pause_duration = extract_acoustic_features(audio_data, sr)
+    mean_pitch, mean_intensity, mean_zcr, speech_rate = extract_acoustic_features(audio_data, sr)
 
-    # You can define your own heuristic or machine learning model to estimate anxiety level
-    # For simplicity, let's use a basic formula
-    anxiety_score = (mean_pitch + mean_intensity + mean_zcr) * duration / (mean_pause_duration + 1)  # A simple formula
+    # Normalize the features between 0 and 1
+    normalized_pitch = (mean_pitch - 50) / (2000 - 50)  # Adjust the range of pitch according to your data
+    normalized_intensity = mean_intensity / np.max(mean_intensity)
+    normalized_zcr = mean_zcr / np.max(mean_zcr)
+    normalized_speech_rate = (speech_rate - 100) / (500 - 100)  # Adjust the range of speech rate according to your data
+
+    # Calculate anxiety score
+    anxiety_score = (normalized_pitch + normalized_intensity + normalized_zcr + normalized_speech_rate) / 4.0
 
     return anxiety_score
 
@@ -85,4 +82,3 @@ with sr.Microphone() as source:
         print("Sorry, could not understand audio.")
     except sr.RequestError as e:
         print("Error fetching results; {0}".format(e))
-
