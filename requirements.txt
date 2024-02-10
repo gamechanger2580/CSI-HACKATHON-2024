@@ -2,6 +2,3 @@ numpy
 librosa
 SpeechRecognition
 pyaudio
-opencv-python
-ultralytics
-cvzone
