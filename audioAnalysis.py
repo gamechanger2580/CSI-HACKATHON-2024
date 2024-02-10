@@ -85,4 +85,3 @@ with sr.Microphone() as source:
         print("Sorry, could not understand audio.")
     except sr.RequestError as e:
         print("Error fetching results; {0}".format(e))
-
