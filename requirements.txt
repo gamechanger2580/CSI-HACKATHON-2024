@@ -9,3 +9,5 @@ text_generation
 python-dotenv
 streamlit
 transformers
+pydub
+librosa

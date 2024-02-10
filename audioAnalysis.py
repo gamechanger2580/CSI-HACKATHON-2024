@@ -30,7 +30,12 @@ def extract_acoustic_features(audio_data, sr):
     else:
         mean_pause_duration = 0
 
-    return mean_pitch, mean_intensity, mean_zcr, duration, mean_pause_duration
+    # Calculate speech rate (words per minute)
+    # Assuming average word length is 5 characters
+    num_words = len(text.split())
+    speech_rate = (num_words / duration) * 60 if duration > 0 else 0
+
+    return mean_pitch, mean_intensity, mean_zcr, duration, mean_pause_duration, speech_rate
 
 # Function to classify anxiety level
 def classify_anxiety_level(anxiety_score):
@@ -48,7 +53,7 @@ def classify_anxiety_level(anxiety_score):
 # Function to estimate anxiety level based on acoustic features
 def estimate_anxiety_level(audio_data, sr):
     # Extract acoustic features
-    mean_pitch, mean_intensity, mean_zcr, duration, mean_pause_duration = extract_acoustic_features(audio_data, sr)
+    mean_pitch, mean_intensity, mean_zcr, duration, mean_pause_duration, speech_rate = extract_acoustic_features(audio_data, sr)
 
     # You can define your own heuristic or machine learning model to estimate anxiety level
     # For simplicity, let's use a basic formula
@@ -80,6 +85,9 @@ with sr.Microphone() as source:
         # Classify anxiety level
         anxiety_level = classify_anxiety_level(anxiety_score)
         print("Anxiety level:", anxiety_level)
+
+        # Check speech rate
+        print("Speech rate (words per minute):", extract_acoustic_features(audio_np, sr)[-1])
 
     except sr.UnknownValueError:
         print("Sorry, could not understand audio.")
