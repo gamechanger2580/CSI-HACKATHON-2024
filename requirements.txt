@@ -2,3 +2,10 @@ numpy
 librosa
 SpeechRecognition
 pyaudio
+langchain
+langchain_community
+huggingface_hub
+text_generation
+python-dotenv
+streamlit
+transformers

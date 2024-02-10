@@ -25,12 +25,16 @@ def extract_acoustic_features(audio_data, sr):
     # Calculate average pause duration (silence duration)
     pauses = librosa.effects.split(y)
     pause_durations = np.diff(pauses) / sr
+    MFCCs = librosa.feature.mfcc(y=y, sr=sr, n_mfcc=13)
+    spectral_Bandwidth = librosa.feature.spectral_bandwidth(y=y, sr=sr)
+    spectral_centroid = librosa.feature.spectral_centroid(y=y, sr=sr)
+    
     if len(pause_durations) > 0:
         mean_pause_duration = np.mean(pause_durations)
     else:
         mean_pause_duration = 0
 
-    return mean_pitch, mean_intensity, mean_zcr, duration, mean_pause_duration
+    return mean_pitch, mean_intensity, mean_zcr, duration, mean_pause_duration, MFCCs, spectral_Bandwidth, spectral_centroid
 
 # Function to classify anxiety level
 def classify_anxiety_level(anxiety_score):
@@ -48,11 +52,36 @@ def classify_anxiety_level(anxiety_score):
 # Function to estimate anxiety level based on acoustic features
 def estimate_anxiety_level(audio_data, sr):
     # Extract acoustic features
-    mean_pitch, mean_intensity, mean_zcr, duration, mean_pause_duration = extract_acoustic_features(audio_data, sr)
+    mean_pitch, mean_intensity, mean_zcr, duration, mean_pause_duration, MFCCs, spectral_Bandwidth, spectral_centroid = extract_acoustic_features(audio_data, sr)
+    print("Mean pitch:", mean_pitch)
+    print("Mean intensity:", mean_intensity)
+    print("Mean ZCR:", mean_zcr)
+    print("Duration:", duration)
+    print("Mean pause duration:", mean_pause_duration)
+    print("MFCCs:", MFCCs)
+    print("Spectral bandwidth:", spectral_Bandwidth)
+    print("Spectral centroid:", spectral_centroid)
+    
+    
+    anxiety_score = 0
+    # Calculate anxiety score based on acoustic features
+    if mean_pitch > 200:
+        anxiety_score += 50
+    if mean_intensity > 0.1:
+        anxiety_score += 50
+    if mean_zcr > 0.1:
+        anxiety_score += 50
+    if duration > 10:
+        anxiety_score += 50
+    if mean_pause_duration > 0.1:
+        anxiety_score += 50
+    if np.mean(MFCCs) > 0.1:
+        anxiety_score += 50
+    if np.mean(spectral_Bandwidth) > 0.1:
+        anxiety_score += 50
+    if np.mean(spectral_centroid) > 0.1:
+        anxiety_score += 50
 
-    # You can define your own heuristic or machine learning model to estimate anxiety level
-    # For simplicity, let's use a basic formula
-    anxiety_score = (mean_pitch + mean_intensity + mean_zcr) * duration / (mean_pause_duration + 1)  # A simple formula
 
     return anxiety_score
 
