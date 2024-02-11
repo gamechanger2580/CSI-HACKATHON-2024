@@ -61,7 +61,7 @@ initial_prompt_template = PromptTemplate(
     You are an AI assistant that helps users facing medical emergencies. 
     At the end of this message there is input by user which is facing some symptoms maybe for a medical condition, provide only medical disorders or diseases which are most probable with their severity also explain why do you came on that conclusion (high severity is such that immediate need of medical attention, such that user can be in danger if not treated immediately, medium is such that user needs medical attention but not immediately, low is such that user can wait for some time before getting medical attention.), 
     which the user might be facing, separated by commas in order of severity.
-
+    %USER_INPUT%:
     {input}
     """
 )
@@ -77,6 +77,7 @@ firstaid_prompt_template = PromptTemplate(
 summary_prompt_template = PromptTemplate(
     input_variables=["response"],
     template="""
+    %USER_INPUT%:
     {response}
     from the above given input, summarize and extract all medical disorders and diseases along with each of their severity levels such that ach pair should be in the format of severity - condition name, other than alphabets in the response there must only contain hyphen for pairs and comma after pairs starting directly with pairs.
     For example: cardiac arrest - high, dehydration - medium, etc.
@@ -126,10 +127,12 @@ if submit_button:
         st.write("Please enter a question")
     else:
         res = get_response(input_text)
-        st.subheader("First aid for the condition")
-        st.write(res[1].strip())
         st.subheader("Summary of the medical conditions and their severity")
+        st.write(res[1].strip())
+        st.subheader("First aid for the condition")
         st.write(res[2].strip())
+        st.write("The response is:")
+        st.write(res[0].strip())
 
 
 
@@ -186,7 +189,7 @@ if audio_file is not None:
         st.write(f"Transcribed text: {text}")
 
     mean_pitch, mean_intensity, mean_zcr, duration, mean_pause_duration, speech_rate = extract_acoustic_features(audio_data, sr)
-    st.write(f"Speech rate: {speech_rate} wpm, {"fast" if speech_rate > 150 else "medium" if speech_rate > 100 else "slow"}")
+    st.write(f"Speech rate: {speech_rate} wpm, {'fast' if speech_rate > 150 else 'medium' if speech_rate > 100 else 'slow'}")
     st.write(f"Mean pitch: {mean_pitch}")
     st.write(f"Mean intensity: {mean_intensity}")
     st.write(f"Mean zero crossing rate: {mean_zcr}")
@@ -198,7 +201,7 @@ if audio_file is not None:
     st.subheader("Summary of the medical conditions and their severity")
     st.write(res[2].strip())
     st.write("The response is:")
-    st.write(res[0])
+    st.write(res[0].strip())
 
     # Delete the temporary file
     os.remove("temp.wav")
