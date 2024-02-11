@@ -11,6 +11,7 @@ from langchain.prompts import PromptTemplate
 from getpass import getpass
 import streamlit as st
 import numpy as np
+import requests
 # import cors
 import librosa
 import os
@@ -46,7 +47,7 @@ except:
     
 
 st.set_page_config(page_title="Q&A demo", page_icon="🌍")
-st.header("Langchain Application")
+st.title('Healthcare Emergency Response System')
 
 class ListOutputParser(BaseOutputParser):
     def parse(self, response: str):
@@ -206,3 +207,62 @@ if audio_file is not None:
 
     # Delete the temporary file
     os.remove("temp.wav")
+
+
+# Define FastAPI endpoints
+UPLOAD_URL = 'http://127.0.0.1:8000/upload'
+VIDEO_URL = 'http://127.0.0.1:8000/video'
+
+# Streamlit UI
+
+# Upload video section
+st.header('Upload Video')
+uploaded_video = st.file_uploader("Choose a video...", type=['mp4'])
+
+if uploaded_video is not None:
+    st.video(uploaded_video)
+
+    # Upon submission
+    if st.button('Submit'):
+        # Call FastAPI endpoint to process the video
+        files = {'file': uploaded_video}
+        response_video = requests.post(VIDEO_URL, files=files)
+
+        if response_video.status_code == 200:
+            recognizer = sr1.Recognizer()
+            with sr1.AudioFile("temp.wav") as source:
+                audio = recognizer.record(source)
+                text = recognizer.recognize_google(audio)
+                st.write(f"Transcribed text: {text}")
+
+                mean_pitch, mean_intensity, mean_zcr, duration, mean_pause_duration, speech_rate = extract_acoustic_features(audio_data, sr)
+                st.write(f"Speech rate: {speech_rate} wpm, {'fast' if speech_rate > 150 else 'medium' if speech_rate > 100 else 'slow'}")
+                st.write(f"Mean pitch: {mean_pitch}")
+                st.write(f"Mean intensity: {mean_intensity}")
+                st.write(f"Mean zero crossing rate: {mean_zcr}")
+                st.write(f"Duration: {duration}")
+                st.write(f"Mean pause duration: {mean_pause_duration}")
+                result = response_video.json()
+                str = text +"\n following are external visuals descriptio of person"
+                if result["blood"] is 1:
+                    str += " blood visible"
+                elif result["wounds"] is 1:
+                    str += " wounds visible"
+                elif result["burns"] is 1:
+                    str += "burns visible"
+                
+                res = get_response(text)
+                st.subheader("First aid for the condition")
+                st.write(res[1].strip())
+                st.subheader("Summary of the medical conditions and their severity")
+                st.write(res[2].strip())
+                st.write("The response is:")
+                st.write(res[0].strip())
+                st.write('Emotion Label:', result['emotion_label'])
+                st.write('Blood Detected:', result['blood'])
+                st.write('Wound Detected:', result['wound'])
+                st.write('Burn Detected:', result['burn'])
+        else:
+            st.write('Error processing video:', response_video.text)
+
+

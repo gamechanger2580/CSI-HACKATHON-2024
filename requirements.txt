@@ -4,7 +4,7 @@ SpeechRecognition
 ultralytics
 pyaudio
 langchain
-langchain_community
+langchain-community
 huggingface_hub
 text_generation
 python-dotenv
