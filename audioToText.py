@@ -33,7 +33,8 @@ os.environ["OPENAI_API_KEY"] = get_key(key_to_get="OPENAI_API_KEY", dotenv_path=
 
 try:
     ner = HuggingFaceHub(
-    repo_id = "HuggingFaceH4/zephyr-7b-beta",
+    # repo_id = "HuggingFaceH4/zephyr-7b-beta",
+        repo_id="microsoft/phi-2",
     task = "text-generation",
     model_kwargs={"max_new_tokens": 250, "temperature": 0.1},
     huggingfacehub_api_token=get_key(key_to_get="HUGGINGFACEHUB_API_KEY", dotenv_path=".env")
