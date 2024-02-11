@@ -9,7 +9,7 @@ import librosa
 from pydantic import BaseModel
 from tensorflow.keras.models import load_model
 import tempfile
-from pydub import AudioSegment, effects
+from pydub import AsudioSegment, effects
 
 FRAME_LENGTH = 2048
 HOP_LENGTH = 512

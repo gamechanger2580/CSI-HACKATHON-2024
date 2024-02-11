@@ -10,3 +10,4 @@ text_generation
 python-dotenv
 streamlit
 transformers
+moviepy
