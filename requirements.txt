@@ -1,6 +1,7 @@
 numpy
 librosa
 SpeechRecognition
+ultralytics
 pyaudio
 langchain
 langchain_community
@@ -13,3 +14,4 @@ pydub
 librosa
 langchain-openai
 cors
+moviepy

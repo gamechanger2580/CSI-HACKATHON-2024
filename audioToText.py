@@ -186,12 +186,12 @@ if audio_file is not None:
         st.write(f"Transcribed text: {text}")
 
     mean_pitch, mean_intensity, mean_zcr, duration, mean_pause_duration, speech_rate = extract_acoustic_features(audio_data, sr)
+    st.write(f"Speech rate: {speech_rate} wpm, {"fast" if speech_rate > 150 else "medium" if speech_rate > 100 else "slow"}")
     st.write(f"Mean pitch: {mean_pitch}")
     st.write(f"Mean intensity: {mean_intensity}")
     st.write(f"Mean zero crossing rate: {mean_zcr}")
     st.write(f"Duration: {duration}")
     st.write(f"Mean pause duration: {mean_pause_duration}")
-    st.write(f"Speech rate: {speech_rate}")
     res = get_response(text)
     st.subheader("First aid for the condition")
     st.write(res[1].strip())
