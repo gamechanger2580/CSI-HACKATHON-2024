@@ -93,7 +93,7 @@ try:
     repo_id="mistralai/Mixtral-8x7B-Instruct-v0.1",
     task="text-generation",
     model_kwargs={
-        "max_new_tokens": 512,
+        "max_new_tokens": 420,
         "top_k": 30,
         "temperature": 0.1,
         "repetition_penalty": 1.03,
