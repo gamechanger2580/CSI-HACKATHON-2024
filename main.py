@@ -87,12 +87,13 @@ while True:
             frame = perform_detection(frame, model, class_list)
 
     # If model 2 is detected, model 3 can also be detected simultaneously
-    if model2_detected and not model3_detected:
+    if model2_detected or model3_detected:
         with open(class_files[2], "r") as my_file:
             data = my_file.read()
             class_list = data.split("\n")
         
         results = model3.predict(frame)
+        print('Model 3 results:', results)
         a = results[0].boxes.data
         px = pd.DataFrame(a).astype("float")
 
