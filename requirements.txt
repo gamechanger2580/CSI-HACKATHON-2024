@@ -10,4 +10,9 @@ text_generation
 python-dotenv
 streamlit
 transformers
+pydub
+librosa
+langchain-openai
+cors
 moviepy
+torch
