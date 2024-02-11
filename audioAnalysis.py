@@ -30,22 +30,18 @@ def extract_acoustic_features(audio_data, sr):
     else:
         mean_pause_duration = 0
 
-    # Calculate speech rate (words per minute)
-    # Assuming average word length is 5 characters
-    num_words = len(text.split())
-    speech_rate = (num_words / duration) * 60 if duration > 0 else 0
+    return mean_pitch, mean_intensity, mean_zcr, duration, mean_pause_duration
 
-    return mean_pitch, mean_intensity, mean_zcr, duration, mean_pause_duration, speech_rate
 
 # Function to classify anxiety level
 def classify_anxiety_level(anxiety_score):
-    if anxiety_score > 100:
+    if anxiety_score > 0.7:
         return 'Very High'
-    elif anxiety_score > 75:
+    elif anxiety_score > 0.5:
         return 'High'
-    elif anxiety_score > 50:
+    elif anxiety_score > 0.3:
         return 'Medium'
-    elif anxiety_score > 25:
+    elif anxiety_score > 0.1:
         return 'Low'
     else:
         return 'Calm'
@@ -53,11 +49,16 @@ def classify_anxiety_level(anxiety_score):
 # Function to estimate anxiety level based on acoustic features
 def estimate_anxiety_level(audio_data, sr):
     # Extract acoustic features
-    mean_pitch, mean_intensity, mean_zcr, duration, mean_pause_duration, speech_rate = extract_acoustic_features(audio_data, sr)
+    mean_pitch, mean_intensity, mean_zcr, speech_rate = extract_acoustic_features(audio_data, sr)
 
-    # You can define your own heuristic or machine learning model to estimate anxiety level
-    # For simplicity, let's use a basic formula
-    anxiety_score = (mean_pitch + mean_intensity + mean_zcr) * duration / (mean_pause_duration + 1)  # A simple formula
+    # Normalize the features between 0 and 1
+    normalized_pitch = (mean_pitch - 50) / (2000 - 50)  # Adjust the range of pitch according to your data
+    normalized_intensity = mean_intensity / np.max(mean_intensity)
+    normalized_zcr = mean_zcr / np.max(mean_zcr)
+    normalized_speech_rate = (speech_rate - 100) / (500 - 100)  # Adjust the range of speech rate according to your data
+
+    # Calculate anxiety score
+    anxiety_score = (normalized_pitch + normalized_intensity + normalized_zcr + normalized_speech_rate) / 4.0
 
     return anxiety_score
 
@@ -85,9 +86,6 @@ with sr.Microphone() as source:
         # Classify anxiety level
         anxiety_level = classify_anxiety_level(anxiety_score)
         print("Anxiety level:", anxiety_level)
-
-        # Check speech rate
-        print("Speech rate (words per minute):", extract_acoustic_features(audio_np, sr)[-1])
 
     except sr.UnknownValueError:
         print("Sorry, could not understand audio.")

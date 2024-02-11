@@ -11,3 +11,5 @@ streamlit
 transformers
 pydub
 librosa
+langchain-openai
+cors
